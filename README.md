@@ -1,6 +1,6 @@
 
 <center>
- <img src="E:\桌面\space_import\源码\resources\spacerscope_pixel_icon.png" style="zoom: 15%;" />
+ <img src="resources\spacerscope_pixel_icon.png" style="zoom: 15%;" />
 </center>
 # **<center>SpacerScope User Manual (English Version)</center>**
 
