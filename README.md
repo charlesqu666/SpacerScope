@@ -2,7 +2,8 @@
 <center>
  <img src="resources\spacerscope_pixel_icon.png" style="zoom: 15%;" />
 </center>
-# **<center>SpacerScope User Manual (English Version)</center>**
+
+#  **<center>SpacerScope User Manual</center>**
 
 
 
