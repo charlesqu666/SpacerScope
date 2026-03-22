@@ -16,6 +16,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <shellapi.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
 #else
 #include <sys/socket.h>
 #endif
@@ -111,6 +113,16 @@ fs::path executable_dir() {
     DWORD len = GetModuleFileNameW(nullptr, buffer, MAX_PATH);
     if (len == 0 || len == MAX_PATH) return fs::current_path();
     return fs::path(std::wstring(buffer, len)).parent_path();
+#elif defined(__APPLE__)
+    char pathbuf[1024];
+    uint32_t bufsize = sizeof(pathbuf);
+    if (_NSGetExecutablePath(pathbuf, &bufsize) == 0) {
+        std::error_code ec;
+        fs::path p = fs::canonical(path, ec);
+        if (!ec) return p.parent_path();
+        return fs::path(pathbuf).parent_path();
+    }
+    return fs::current_path();
 #else
     std::error_code ec;
     fs::path p = fs::read_symlink("/proc/self/exe", ec);
@@ -150,6 +162,20 @@ void open_browser_async(const std::string& bind_host, int port) {
     std::thread([url]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         ShellExecuteW(nullptr, L"open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    }).detach();
+}
+
+#elif defined(__APPLE__)
+void open_browser_async(const std::string& bind_host, int port) {
+    std::string host = bind_host;
+    if (host == "0.0.0.0" || host == "::" || host == "[::]") {
+        host = "127.0.0.1";
+    }
+    std::string url = "http://" + host + ":" + std::to_string(port);
+    std::thread([url]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::string cmd = "open " + url;
+        system(cmd.c_str());
     }).detach();
 }
 #endif
@@ -484,7 +510,7 @@ int main(int argc, char* argv[]) {
     if (bind_host != "127.0.0.1" && bind_host != "::1" && bind_host != "localhost") {
         std::cout << "Warning: LAN mode has no authentication in v1. Use only on a trusted network." << std::endl;
     }
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
     open_browser_async(bind_host, port);
 #endif
     if (!server.listen_after_bind()) {
