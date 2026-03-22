@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(APPLE)
+    if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version" FORCE)
+    endif()
+endif()
+
 if(NOT CMAKE_CONFIGURATION_TYPES)
     set(_valid_build_types Debug Release RelWithDebInfo MinSizeRel)
     if(NOT CMAKE_BUILD_TYPE)
@@ -108,6 +114,10 @@ else()
         $<$<CONFIG:Release>:-fdata-sections>
         $<$<CONFIG:Debug>:-g>
     )
+    if(MINGW)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+    endif()
+
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set_property(TARGET spacerscope APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " -Wl,--gc-sections")
     elseif(APPLE)
@@ -161,9 +171,10 @@ function(target_enable_best_simd target)
 
         message(STATUS "  - No extra x86 SIMD flag enabled.")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
-        enable_simd_feature(${target} "NEON" "-march=armv8-a+simd" "" "__ARM_NEON")
-        if(SPACERSCOPE_SIMD_ENABLED)
-            return()
+        if(APPLE)
+            enable_simd_feature(${target} "NEON" "" "" "__ARM_NEON")
+        else()
+            enable_simd_feature(${target} "NEON" "-march=armv8-a+simd" "" "__ARM_NEON")
         endif()
 
         message(STATUS "  - No extra ARM SIMD flag enabled.")
