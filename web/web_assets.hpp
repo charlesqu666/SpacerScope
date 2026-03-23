@@ -1,4 +1,6 @@
-﻿#pragma once
+# Copyright (C) 2026 charlesqu666
+# SPDX-License-Identifier: AGPL-3.0
+#pragma once
 
 #include <string>
 
