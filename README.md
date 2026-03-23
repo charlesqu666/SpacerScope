@@ -23,7 +23,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 ### Commercial SaaS Warning
 
-AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service (e.g., "gRNA Design API" or "Hosted CRISPR Analysis Platform"), **you must provide the complete corresponding source code of your service to the users**, including all backend modifications and surrounding platform code. This effectively prohibits proprietary commercial wrapping of this tool without full source disclosure.
+AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service (e.g., "gRNA Design API" or "Hosted CRISPR Analysis Platform"), **you must provide the complete corresponding source code of your service to the users**, including all backend modifications and surrounding platform code. 
 
 **Source Code**: https://github.com/charlesqu666/SpacerScope
 
