@@ -59,32 +59,13 @@ include(CheckIPOSupported)
 
 find_package(OpenMP REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
-    set(SPACERSCOPE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-else()
-    set(SPACERSCOPE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-endif()
-
-if(EXISTS "${SPACERSCOPE_SOURCE_DIR}/core/fasta_parser.cpp")
-    set(SPACERSCOPE_CORE_DIR "${SPACERSCOPE_SOURCE_DIR}/core")
-else()
-    set(SPACERSCOPE_CORE_DIR "${SPACERSCOPE_SOURCE_DIR}")
-endif()
-
-if(EXISTS "${SPACERSCOPE_SOURCE_DIR}/cli/main.cpp")
-    set(SPACERSCOPE_CLI_DIR "${SPACERSCOPE_SOURCE_DIR}/cli")
-else()
-    set(SPACERSCOPE_CLI_DIR "${SPACERSCOPE_SOURCE_DIR}")
-endif()
-
-if(EXISTS "${SPACERSCOPE_SOURCE_DIR}/web/web_main.cpp")
-    set(SPACERSCOPE_WEB_DIR "${SPACERSCOPE_SOURCE_DIR}/web")
-else()
-    set(SPACERSCOPE_WEB_DIR "${SPACERSCOPE_SOURCE_DIR}")
-endif()
-
-set(SPACERSCOPE_RESOURCE_DIR "${SPACERSCOPE_SOURCE_DIR}/resources")
+set(SPACERSCOPE_SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}")
+set(SPACERSCOPE_CORE_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/core")
+set(SPACERSCOPE_CLI_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/cli")
+set(SPACERSCOPE_WEB_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/web")
+set(SPACERSCOPE_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 
 add_executable(spacerscope
         ${SPACERSCOPE_CLI_DIR}/main.cpp
@@ -115,7 +96,7 @@ set(SPACERSCOPE_COMMON_INCLUDE_DIRS
 )
 
 target_include_directories(spacerscope PUBLIC ${SPACERSCOPE_COMMON_INCLUDE_DIRS})
-target_link_libraries(spacerscope PRIVATE OpenMP::OpenMP_CXX ZLIB::ZLIB)
+target_link_libraries(spacerscope PRIVATE OpenMP::OpenMP_CXX ZLIB::ZLIB Threads::Threads)
 target_compile_definitions(spacerscope PRIVATE $<$<CONFIG:Release>:NDEBUG>)
 target_compile_definitions(spacerscope PRIVATE SPACERSCOPE_VERSION="${PROJECT_VERSION}")
 
@@ -193,12 +174,14 @@ function(target_enable_best_simd target)
         message(STATUS "  - No extra x86 SIMD flag enabled.")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
         if(APPLE)
-            enable_simd_feature(${target} "NEON" "" "" "__ARM_NEON")
+            # Apple Silicon: NEON is always enabled by Apple Clang; no extra flag needed.
+            message(STATUS "  + NEON always-on (Apple Silicon, enabled by default)")
         else()
             enable_simd_feature(${target} "NEON" "-march=armv8-a+simd" "" "__ARM_NEON")
+            if(NOT SPACERSCOPE_SIMD_ENABLED)
+                message(STATUS "  - No extra ARM SIMD flag enabled.")
+            endif()
         endif()
-
-        message(STATUS "  - No extra ARM SIMD flag enabled.")
     else()
         message(STATUS "  - SIMD auto-detect skipped for processor ${CMAKE_SYSTEM_PROCESSOR}.")
     endif()
@@ -218,7 +201,9 @@ target_include_directories(spacerscope-web PUBLIC ${SPACERSCOPE_COMMON_INCLUDE_D
 target_compile_definitions(spacerscope-web PRIVATE $<$<CONFIG:Release>:NDEBUG>)
 target_compile_definitions(spacerscope-web PRIVATE SPACERSCOPE_VERSION="${PROJECT_VERSION}")
 if(WIN32)
-    target_link_libraries(spacerscope-web PRIVATE ws2_32)
+    target_link_libraries(spacerscope-web PRIVATE ws2_32 Threads::Threads)
+else()
+    target_link_libraries(spacerscope-web PRIVATE Threads::Threads)
 endif()
 
 if(MSVC)
