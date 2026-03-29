@@ -1,32 +1,13 @@
-/*
- * SpacerScope - gRNA Design and Off-Target Effect Analysis Tool
- * Copyright (C) 2026 charlesqu666
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful for CRISPR
- * research and therapeutic applications, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- * 
- * Source code is available at: https://github.com/charlesqu666/SpacerScope
- */
 #include <iostream>
 #include <string>
 #include <vector>
 #include <chrono>
+#include <unordered_map>
 #include <fstream>
 #include <thread>
 #include <sstream>
 #include <algorithm>
 #include <cstdio>
-#include <map>
 #include <iomanip>
 #include <cstdint>
 #include "types.hpp"
@@ -277,7 +258,7 @@ std::vector<CombinedResult> combine_results_direct(
         int max_mismatch,
         int max_indel) {
 
-    std::map<std::pair<std::string, std::string>, CombinedResult> unique_results;
+    std::unordered_map<std::pair<std::string, std::string>, CombinedResult, pair_hash> unique_results;
 
     auto store_results = [&](const std::vector<SearchHit>& hits, const std::string& type_label) {
         for (const auto& raw_hit : hits) {
@@ -297,7 +278,7 @@ std::vector<CombinedResult> combine_results_direct(
     if (max_mismatch >= 0) store_results(mismatch_hits, "Mismatch");
     if (max_indel > 0) store_results(indel_hits, "Indel");
 
-    std::map<std::pair<std::string, std::string>, int> new_frequency_map;
+    std::unordered_map<std::pair<std::string, std::string>, int, pair_hash> new_frequency_map;
     for (const auto& pair : unique_results) {
         const auto& data = pair.second;
         new_frequency_map[{data.query_name, data.target_seq}]++;
@@ -635,7 +616,8 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "--spacer-len") {
             if (!require_value(arg)) return 1;
-            spacer_len = std::stoi(argv[++i]);
+            try { spacer_len = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --spacer-len requires an integer." << std::endl; return 1; }
         }
         else if (arg == "--direction") {
             if (!require_value(arg)) return 1;
@@ -643,24 +625,29 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "-m" || arg == "--mismatch") {
             if (!require_value(arg)) return 1;
-            max_mismatch = std::stoi(argv[++i]);
+            try { max_mismatch = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --mismatch requires an integer." << std::endl; return 1; }
         }
         else if (arg == "-i" || arg == "--indel") {
             if (!require_value(arg)) return 1;
-            max_indel = std::stoi(argv[++i]);
+            try { max_indel = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --indel requires an integer." << std::endl; return 1; }
         }
         else if (arg == "--dust-threshold") {
             if (!require_value(arg)) return 1;
-            dust_threshold = std::stoi(argv[++i]);
+            try { dust_threshold = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --dust-threshold requires an integer." << std::endl; return 1; }
         }
         else if (arg == "-t" || arg == "--threads") {
             if (!require_value(arg)) return 1;
-            num_threads = std::stoi(argv[++i]);
+            try { num_threads = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --threads requires an integer." << std::endl; return 1; }
         }
         else if (arg == "-y" || arg == "--yes" || arg == "--skip-memory-check") skip_memory_check = true;
         else if (arg == "--html" || arg == "-ht") {
             if (!require_value(arg)) return 1;
-            html_flag = std::stoi(argv[++i]);
+            try { html_flag = std::stoi(argv[++i]); }
+            catch (...) { std::cerr << "Error: --html requires 0 or 1." << std::endl; return 1; }
         }
         else if (arg == "--raw-output") raw_output = true;
         else if (arg == "--progress-format") {
@@ -1002,28 +989,14 @@ int main(int argc, char* argv[]) {
         GenomeReference query_genome;  // Keep query genome alive for search
 
         if (!query_file.empty()) {
-            // Parse query file into genome structure
             query_genome = parse_fasta_to_genome(query_file);
-            std::vector<SpacerLocation> unfiltered_locs;
-            spacerExtractionLoc(query_genome, pam, spacer_len, upstream, unfiltered_locs, num_threads, dust_threshold);
-            
-            // Apply DUST filter by checking complexity on-demand
-            for (const auto& loc : unfiltered_locs) {
-                std::string_view seq = query_genome.get_sequence(loc);
-                // Simple complexity check: just keep all for now (dust_filter would need adaptation)
-                query_locs.push_back(loc);
-            }
+            spacerExtractionLoc(query_genome, pam, spacer_len, upstream, query_locs, num_threads, dust_threshold);
         } else {
             load_annotation_queries(gene_id, annotation_file, seq_type, genome, query_genome);
             progress::log("  Extracted " + std::to_string(query_genome.size()) +
                           " annotation-derived query sequence(s) for gene " + gene_id +
                           " (seq-type: " + seq_type + ")");
-            std::vector<SpacerLocation> unfiltered_locs;
-            spacerExtractionLoc(query_genome, pam, spacer_len, upstream, unfiltered_locs, num_threads, dust_threshold);
-            
-            for (const auto& loc : unfiltered_locs) {
-                query_locs.push_back(loc);
-            }
+            spacerExtractionLoc(query_genome, pam, spacer_len, upstream, query_locs, num_threads, dust_threshold);
         }
         progress::log("  Found " + std::to_string(query_locs.size()) + " query spacers");
         progress::step_done("Step 1", std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - step_start_time).count());
