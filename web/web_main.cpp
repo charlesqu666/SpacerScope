@@ -1,22 +1,3 @@
-/*
- * SpacerScope - gRNA Design and Off-Target Effect Analysis Tool
- * Copyright (C) 2026 charlesqu666
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful for CRISPR
- * research and therapeutic applications, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- * 
- * Source code is available at: https://github.com/charlesqu666/SpacerScope
- */
 #include "web_assets.hpp"
 #include "web_job.hpp"
 
@@ -37,6 +18,7 @@
 #include <shellapi.h>
 #elif defined(__APPLE__)
 #include <mach-o/dyld.h>
+#include <unistd.h>
 #else
 #include <sys/socket.h>
 #endif
@@ -137,7 +119,7 @@ fs::path executable_dir() {
     uint32_t bufsize = sizeof(pathbuf);
     if (_NSGetExecutablePath(pathbuf, &bufsize) == 0) {
         std::error_code ec;
-        fs::path p = fs::canonical(path, ec);
+        fs::path p = fs::canonical(fs::path(pathbuf), ec);
         if (!ec) return p.parent_path();
         return fs::path(pathbuf).parent_path();
     }
@@ -192,9 +174,13 @@ void open_browser_async(const std::string& bind_host, int port) {
     }
     std::string url = "http://" + host + ":" + std::to_string(port);
     std::thread([url]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        std::string cmd = "open " + url;
-        system(cmd.c_str());
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        pid_t pid = fork();
+        if (pid == 0) {
+            const char* argv[] = { "/usr/bin/open", url.c_str(), nullptr };
+            execv("/usr/bin/open", const_cast<char* const*>(argv));
+            _exit(1);
+        }
     }).detach();
 }
 #endif
