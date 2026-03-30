@@ -489,6 +489,8 @@ spacerscope --report-tsv result.tsv --html-output result.html
 ```bash
 spacerscope-web --bind 127.0.0.1 --port 8787
 
+```
+
 ## License
 
 Copyright (C) 2026 charlesqu666
@@ -513,6 +515,4 @@ AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service 
 ### Cite
 
 The app has not been published yet, please cite: https://github.com/charlesqu666/SpacerScope
-```
-
 
