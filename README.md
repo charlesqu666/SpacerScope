@@ -5,30 +5,6 @@
 
 #  **<center>SpacerScope User Manual</center>**
 
-
-## License
-
-Copyright (C) 2026 charlesqu666
-
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
-
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-
-### Usage Rights
-
-- ✅ **Academic Research**: Free for all academic and non-profit research institutions
-- ✅ **Clinical Use**: Healthcare providers may use this software to design gRNA for specific patient treatment
-- ✅ **Modification & Distribution**: Allowed under AGPL terms with source code disclosure
-- ⚠️ **Network Use (Section 13)**: If you provide this software as a remote service (SaaS), you must offer the complete source code to users of that service
-
-### Commercial SaaS Warning
-
-AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service (e.g., "gRNA Design API" or "Hosted CRISPR Analysis Platform"), **you must provide the complete corresponding source code of your service to the users**, including all backend modifications and surrounding platform code. 
-
-**Source Code**: https://github.com/charlesqu666/SpacerScope
-
-
-
 ## 1. Introduction
 
 ### What is SpacerScope?
@@ -512,6 +488,31 @@ spacerscope --report-tsv result.tsv --html-output result.html
 
 ```bash
 spacerscope-web --bind 127.0.0.1 --port 8787
+
+## License
+
+Copyright (C) 2026 charlesqu666
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
+### Usage Rights
+
+- ✅ **Academic Research**: Free for all academic and non-profit research institutions
+- ✅ **Clinical Use**: Healthcare providers may use this software to design gRNA for specific patient treatment
+- ✅ **Modification & Distribution**: Allowed under AGPL terms with source code disclosure
+- ⚠️ **Network Use (Section 13)**: If you provide this software as a remote service (SaaS), you must offer the complete source code to users of that service
+
+### Commercial SaaS Warning
+
+AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service (e.g., "gRNA Design API" or "Hosted CRISPR Analysis Platform"), **you must provide the complete corresponding source code of your service to the users**, including all backend modifications and surrounding platform code. 
+
+**Source Code**: https://github.com/charlesqu666/SpacerScope
+
+### Cite
+
+The app has not been published yet, please cite: https://github.com/charlesqu666/SpacerScope
 ```
 
 
