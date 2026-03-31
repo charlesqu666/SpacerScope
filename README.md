@@ -514,5 +514,5 @@ AGPL-3.0 Section 13 requires that if you offer SpacerScope as a network service 
 
 ### Cite
 
-The app has not been published yet, please cite: https://github.com/charlesqu666/SpacerScope
+Please cite: YJ Qu, YX Wang, Yan Wang, et al., SpacerScope: Binary-vectorized, genome-wide off-target profiling for RNA-guided nucleases without prior candidate-site bias. https://www.biorxiv.org/cgi/content/short/2026.03.28.715005v1
 
