@@ -1,0 +1,1 @@
+spacerscope fasta --query query.fasta --ref fake_genome.fasta -o faker_database_spacerscope_out.tsv --dust-threshold 200
